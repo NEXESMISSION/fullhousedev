@@ -6,16 +6,20 @@ export function createClient() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
+    const error = new Error('Missing Supabase environment variables. Check your .env.local file.')
     console.error('[Supabase Client] Missing environment variables:', {
       hasUrl: !!url,
       hasKey: !!key,
       url: url ? '***' : 'MISSING',
     })
-    throw new Error('Missing Supabase environment variables. Check your .env.local file.')
+    throw error
   }
 
-  console.log('[Supabase Client] Initializing client with URL:', url.substring(0, 30) + '...')
-
-  return createBrowserClient<Database>(url, key)
+  try {
+    return createBrowserClient<Database>(url, key)
+  } catch (error) {
+    console.error('[Supabase Client] Error creating client:', error)
+    throw error
+  }
 }
 

@@ -7,32 +7,40 @@ export async function createClient() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
+    const error = new Error('Missing Supabase environment variables. Check your .env.local file.')
     console.error('[Supabase Server] Missing environment variables:', {
       hasUrl: !!url,
       hasKey: !!key,
     })
-    throw new Error('Missing Supabase environment variables. Check your .env.local file.')
+    // In production, we should handle this more gracefully
+    // For now, throw to prevent silent failures
+    throw error
   }
 
-  const cookieStore = await cookies()
+  try {
+    const cookieStore = await cookies()
 
-  return createServerClient<Database>(url, key, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
+    return createServerClient<Database>(url, key, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-    },
-  })
+    })
+  } catch (error) {
+    console.error('[Supabase Server] Error creating client:', error)
+    throw error
+  }
 }
 

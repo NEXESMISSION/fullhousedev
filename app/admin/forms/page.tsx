@@ -6,12 +6,17 @@ import { ar as t } from '@/lib/translations'
 import SubmissionCount from '@/components/SubmissionCount'
 
 export default async function FormsPage() {
-  const supabase = await createClient()
-  
-  const { data: forms, error } = await supabase
-    .from('forms')
-    .select('*')
-    .order('created_at', { ascending: false })
+  try {
+    const supabase = await createClient()
+    
+    const { data: forms, error } = await supabase
+      .from('forms')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[Forms Page] Error loading forms:', error)
+    }
 
   const formsList = (forms || []) as Array<{
     id: string
@@ -177,4 +182,21 @@ export default async function FormsPage() {
       </div>
     </div>
   )
+  } catch (error) {
+    console.error('[Forms Page] Unexpected error:', error)
+    // Return a fallback UI
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">النماذج</h1>
+            <p className="mt-2 text-sm sm:text-base text-gray-600">إدارة جميع النماذج</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-md border border-red-200 p-6">
+          <p className="text-red-800">حدث خطأ في تحميل النماذج. يرجى المحاولة مرة أخرى.</p>
+        </div>
+      </div>
+    )
+  }
 }

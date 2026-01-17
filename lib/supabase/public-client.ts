@@ -7,9 +7,19 @@ export function createPublicClient() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
-    throw new Error('Missing Supabase environment variables')
+    const error = new Error('Missing Supabase environment variables')
+    console.error('[Supabase Public Client] Missing environment variables:', {
+      hasUrl: !!url,
+      hasKey: !!key,
+    })
+    throw error
   }
 
-  return createSupabaseClient<Database>(url, key)
+  try {
+    return createSupabaseClient<Database>(url, key)
+  } catch (error) {
+    console.error('[Supabase Public Client] Error creating client:', error)
+    throw error
+  }
 }
 
