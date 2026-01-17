@@ -9,6 +9,60 @@ import MediaDisplay from './MediaDisplay'
 import LocationPickerFree from './LocationPickerFree'
 import { tunisiaGovernorates, tunisiaCities, getCitiesForGovernorate } from '@/lib/tunisia-data'
 
+// Tutorial Video Component
+function TutorialVideoDisplay({ videoUrl }: { videoUrl: string }) {
+  const getYouTubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+    const match = url.match(regExp)
+    return match && match[2].length === 11 ? match[2] : null
+  }
+
+  const getVimeoId = (url: string) => {
+    const regExp = /(?:vimeo)\.com.*(?:videos|video|channels|)\/([\d]+)/i
+    const match = url.match(regExp)
+    return match ? match[1] : null
+  }
+
+  const youtubeId = getYouTubeId(videoUrl)
+  const vimeoId = getVimeoId(videoUrl)
+
+  if (youtubeId) {
+    return (
+      <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+        <iframe
+          className="absolute top-0 left-0 w-full h-full"
+          src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
+          title="فيديو توضيحي"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    )
+  }
+
+  if (vimeoId) {
+    return (
+      <div className="relative w-full rounded-lg overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+        <iframe
+          className="absolute top-0 left-0 w-full h-full"
+          src={`https://player.vimeo.com/video/${vimeoId}`}
+          title="فيديو توضيحي"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full rounded-lg overflow-hidden bg-black">
+      <video src={videoUrl} controls className="w-full h-auto max-h-96">
+        متصفحك لا يدعم تشغيل الفيديو
+      </video>
+    </div>
+  )
+}
+
 type Form = Database['public']['Tables']['forms']['Row']
 type Field = Database['public']['Tables']['fields']['Row']
 
@@ -321,6 +375,19 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
               <p className="text-blue-100 text-sm sm:text-base">{form.description}</p>
             )}
           </div>
+
+          {/* Tutorial Video */}
+          {(form as any).tutorial_video_url && (
+            <div className="px-6 sm:px-8 pt-4 pb-2">
+              <div className="bg-blue-50 border-r-4 border-blue-600 rounded-lg p-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <span>🎥</span>
+                  <span>فيديو توضيحي</span>
+                </h3>
+                <TutorialVideoDisplay videoUrl={(form as any).tutorial_video_url} />
+              </div>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">

@@ -229,7 +229,7 @@ export default function LocationPickerFree({ value, onChange, required }: Locati
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapClickHandler onLocationSelect={handleLocationSelect} />
-            {location && (
+            {location && markerIcon && (
               <Marker position={[location.lat, location.lng]} icon={markerIcon}>
               </Marker>
             )}
