@@ -45,8 +45,8 @@ export async function createHousingForm() {
     return { error: formError }
   }
 
-  const formTyped = form as { id: string; public_url: string }
-  console.log('Form created:', formTyped.id, formTyped.public_url)
+  const formTypedForLog = form as { id: string; public_url: string }
+  console.log('Form created:', formTypedForLog.id, formTypedForLog.public_url)
 
   // Define all fields
   const fields: FieldDefinition[] = [
@@ -210,7 +210,7 @@ export async function createHousingForm() {
 
   // Insert all fields
   const fieldsToInsert = fields.map(field => ({
-    form_id: formTyped.id,
+    form_id: formTypedForLog.id,
     label: field.label,
     type: field.type,
     required: field.required,
@@ -233,11 +233,12 @@ export async function createHousingForm() {
 
   console.log(`Created ${createdFields?.length || 0} fields`)
 
+  const formTypedForReturn = form as { id: string; public_url: string }
   return {
     success: true,
     form,
     fields: createdFields,
-    publicUrl: `/form/${form.public_url}`,
+    publicUrl: `/form/${formTypedForReturn.public_url}`,
   }
 }
 

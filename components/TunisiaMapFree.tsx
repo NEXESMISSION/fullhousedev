@@ -67,43 +67,109 @@ function FitBounds({ locations }: { locations: Location[] }) {
 
 export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
   const [mapReady, setMapReady] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const tunisiaCenter: [number, number] = [33.8869, 10.1218]
 
   useEffect(() => {
     setMapReady(true)
   }, [])
 
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      // Enter fullscreen
+      const elem = document.documentElement
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen()
+      } else if ((elem as any).webkitRequestFullscreen) {
+        ;(elem as any).webkitRequestFullscreen()
+      } else if ((elem as any).msRequestFullscreen) {
+        ;(elem as any).msRequestFullscreen()
+      }
+      setIsFullscreen(true)
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+      } else if ((document as any).webkitExitFullscreen) {
+        ;(document as any).webkitExitFullscreen()
+      } else if ((document as any).msExitFullscreen) {
+        ;(document as any).msExitFullscreen()
+      }
+      setIsFullscreen(false)
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement || !!(document as any).webkitFullscreenElement || !!(document as any).msFullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('msfullscreenchange', handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white' : 'min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6'}`}>
+      <div className={`${isFullscreen ? 'h-full w-full' : 'max-w-7xl mx-auto'}`}>
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            خريطة المواقع - تونس
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            عرض جميع المواقع المحددة في النماذج على خريطة تونس
-          </p>
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-700">موقع محدد</span>
-            </div>
-            <div className="text-sm text-gray-600">
-              <strong>عدد المواقع:</strong> {locations.length}
+        {!isFullscreen && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              خريطة المواقع - تونس
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base">
+              عرض جميع المواقع المحددة في النماذج على خريطة تونس
+            </p>
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">موقع محدد</span>
+              </div>
+              <div className="text-sm text-gray-600">
+                <strong>عدد المواقع:</strong> {locations.length}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Map Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className={`bg-white ${isFullscreen ? 'h-full w-full' : 'rounded-2xl shadow-lg border border-gray-200 overflow-hidden'}`}>
+          {/* Fullscreen Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="absolute top-4 left-4 z-[1000] bg-white hover:bg-gray-100 text-gray-700 rounded-lg shadow-lg border border-gray-300 p-2.5 sm:p-3 transition-all duration-200 flex items-center justify-center gap-2"
+            title={isFullscreen ? 'إغلاق ملء الشاشة' : 'ملء الشاشة'}
+          >
+            {isFullscreen ? (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="text-xs sm:text-sm font-medium">إغلاق</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                <span className="text-xs sm:text-sm font-medium">ملء الشاشة</span>
+              </>
+            )}
+          </button>
           {mapReady ? (
             <MapContainer
               center={tunisiaCenter}
               zoom={7}
               minZoom={6}
               maxZoom={18}
-              style={{ height: '600px', width: '100%' }}
+              style={{ height: isFullscreen ? '100vh' : '600px', width: '100%' }}
               scrollWheelZoom={true}
             >
               <TileLayer
@@ -169,8 +235,8 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
           )}
         </div>
 
-        {/* Locations List - Simplified Table View */}
-        {locations.length > 0 && (
+        {/* Locations List - Simplified Table View - Hide in fullscreen */}
+        {!isFullscreen && locations.length > 0 && (
           <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">قائمة المواقع ({locations.length})</h2>
@@ -234,7 +300,7 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
           </div>
         )}
 
-        {locations.length === 0 && (
+        {!isFullscreen && locations.length === 0 && (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
             <div className="text-6xl mb-4">🗺️</div>
             <p className="text-gray-600 text-lg">لا توجد مواقع محددة بعد</p>
