@@ -2,6 +2,9 @@ import { createPublicClient } from '@/lib/supabase/public-client'
 import { notFound } from 'next/navigation'
 import PublicForm from '@/components/PublicForm'
 
+// Force dynamic rendering for dynamic routes
+export const dynamic = 'force-dynamic'
+
 export default async function PublicFormPage({ params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params

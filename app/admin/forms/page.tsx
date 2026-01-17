@@ -5,6 +5,9 @@ import { ar } from 'date-fns/locale'
 import { ar as t } from '@/lib/translations'
 import SubmissionCount from '@/components/SubmissionCount'
 
+// Force dynamic rendering for pages that use cookies/authentication
+export const dynamic = 'force-dynamic'
+
 export default async function FormsPage() {
   try {
     const supabase = await createClient()

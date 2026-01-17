@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import FormEditor from '@/components/FormEditor'
 
+// Force dynamic rendering for pages that use cookies/authentication
+export const dynamic = 'force-dynamic'
+
 export default async function EditFormPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   

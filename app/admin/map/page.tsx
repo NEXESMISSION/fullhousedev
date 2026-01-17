@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import TunisiaMapFree from '@/components/TunisiaMapFree'
 
+// Force dynamic rendering for pages that use cookies/authentication
+export const dynamic = 'force-dynamic'
+
 export default async function MapPage() {
   try {
     const supabase = await createClient()

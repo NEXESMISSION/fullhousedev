@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import SubmissionsView from '@/components/SubmissionsView'
 
+// Force dynamic rendering for pages that use cookies/authentication
+export const dynamic = 'force-dynamic'
+
 export default async function SubmissionsPage() {
   try {
     const supabase = await createClient()
