@@ -15,10 +15,15 @@ export default async function PublicFormPage({ params }: { params: Promise<{ slu
     .eq('status', 'active')
     .maybeSingle()
 
-  // Handle 404 or missing form gracefully
+  // Handle missing form gracefully - maybeSingle returns null instead of error
   if (formError) {
-    // Only log non-404 errors (404 is expected when form doesn't exist)
-    if (formError.code !== 'PGRST116') {
+    // Only log unexpected errors (404/PGRST116/NOT_FOUND is expected when form doesn't exist)
+    const isNotFoundError = formError.code === 'PGRST116' || 
+                            formError.code === 'NOT_FOUND' ||
+                            formError.message?.toLowerCase().includes('not found') ||
+                            formError.message?.toLowerCase().includes('no rows returned')
+    
+    if (!isNotFoundError) {
       console.error('[Public Form] Error loading form:', {
         message: formError.message,
         code: formError.code,
@@ -29,7 +34,6 @@ export default async function PublicFormPage({ params }: { params: Promise<{ slu
   }
 
   if (!form) {
-    console.log('[Public Form] Form not found for slug:', slug)
     notFound()
   }
 
