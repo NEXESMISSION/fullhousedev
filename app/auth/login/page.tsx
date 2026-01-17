@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ar as t } from '@/lib/translations'
 
-function LoginForm() {
+function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -155,7 +155,7 @@ function LoginForm() {
   )
 }
 
-export default function LoginPage() {
+function LoginForm() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
@@ -165,7 +165,11 @@ export default function LoginPage() {
         </div>
       </div>
     }>
-      <LoginForm />
+      <LoginFormContent />
     </Suspense>
   )
+}
+
+export default function LoginPage() {
+  return <LoginForm />
 }

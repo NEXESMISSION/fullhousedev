@@ -374,20 +374,18 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
             {form.description && (
               <p className="text-blue-100 text-sm sm:text-base">{form.description}</p>
             )}
-          </div>
-
-          {/* Tutorial Video */}
-          {(form as any).tutorial_video_url && (
-            <div className="px-6 sm:px-8 pt-4 pb-2">
-              <div className="bg-blue-50 border-r-4 border-blue-600 rounded-lg p-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            
+            {/* Tutorial Video - On top with title and description */}
+            {(form as any).tutorial_video_url && (
+              <div className="mt-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 flex items-center gap-2">
                   <span>🎥</span>
                   <span>فيديو توضيحي</span>
                 </h3>
                 <TutorialVideoDisplay videoUrl={(form as any).tutorial_video_url} />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
