@@ -44,6 +44,7 @@ interface Location {
   formName: string
   submissionId: string
   createdAt: string
+  fieldLabel: string
 }
 
 interface TunisiaMapFreeProps {
@@ -54,12 +55,21 @@ function FitBounds({ locations }: { locations: Location[] }) {
   const map = useMap()
   
   useEffect(() => {
-    // Always show all of Tunisia
-    const tunisiaBounds = L.latLngBounds(
-      [30.2, 7.5], // Southwest corner
-      [37.3, 11.6]  // Northeast corner
-    )
-    map.fitBounds(tunisiaBounds, { padding: [20, 20] })
+    if (locations.length === 0) {
+      // Always show all of Tunisia if no locations
+      const tunisiaBounds = L.latLngBounds(
+        [30.2, 7.5], // Southwest corner
+        [37.3, 11.6]  // Northeast corner
+      )
+      map.fitBounds(tunisiaBounds, { padding: [20, 20] })
+    } else if (locations.length === 1) {
+      // If only one location, center on it with zoom
+      map.setView([locations[0].lat, locations[0].lng], 12)
+    } else {
+      // Fit bounds to show all locations
+      const bounds = L.latLngBounds(locations.map(loc => [loc.lat, loc.lng] as [number, number]))
+      map.fitBounds(bounds, { padding: [50, 50] })
+    }
   }, [locations, map])
   
   return null
@@ -68,7 +78,19 @@ function FitBounds({ locations }: { locations: Location[] }) {
 export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
   const [mapReady, setMapReady] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [locationType, setLocationType] = useState<'all' | 'current' | 'desired'>('all')
   const tunisiaCenter: [number, number] = [33.8869, 10.1218]
+
+  // Filter locations based on selected type
+  const currentLocationLabel = 'موقع السكن الحالي'
+  const desiredLocationLabel = 'الموقع المرغوب لاقتناء المسكن'
+  
+  const filteredLocations = locations.filter(loc => {
+    if (locationType === 'all') return true
+    if (locationType === 'current') return loc.fieldLabel === currentLocationLabel
+    if (locationType === 'desired') return loc.fieldLabel === desiredLocationLabel
+    return true
+  })
 
   useEffect(() => {
     setMapReady(true)
@@ -127,20 +149,58 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
             <p className="text-gray-600 text-sm sm:text-base">
               عرض جميع المواقع المحددة في النماذج على خريطة تونس
             </p>
-            <div className="mt-4 flex items-center gap-4">
+            
+            {/* Location Type Filter Buttons */}
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700">عرض:</span>
+              </div>
+              <button
+                onClick={() => setLocationType('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  locationType === 'all'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                الكل ({locations.length})
+              </button>
+              <button
+                onClick={() => setLocationType('current')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  locationType === 'current'
+                    ? 'bg-green-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                موقع السكن الحالي ({locations.filter(l => l.fieldLabel === currentLocationLabel).length})
+              </button>
+              <button
+                onClick={() => setLocationType('desired')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  locationType === 'desired'
+                    ? 'bg-purple-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                الموقع المرغوب ({locations.filter(l => l.fieldLabel === desiredLocationLabel).length})
+              </button>
+            </div>
+            
+            <div className="mt-4 flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
                 <span className="text-sm text-gray-700">موقع محدد</span>
               </div>
               <div className="text-sm text-gray-600">
-                <strong>عدد المواقع:</strong> {locations.length}
+                <strong>عدد المواقع المعروضة:</strong> {filteredLocations.length}
               </div>
             </div>
           </div>
         )}
 
         {/* Map Container */}
-        <div className={`bg-white ${isFullscreen ? 'h-full w-full' : 'rounded-2xl shadow-lg border border-gray-200 overflow-hidden'}`}>
+        <div className={`relative bg-white ${isFullscreen ? 'h-full w-full' : 'rounded-2xl shadow-lg border border-gray-200 overflow-hidden'}`}>
           {/* Fullscreen Button */}
           <button
             onClick={toggleFullscreen}
@@ -176,8 +236,8 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <FitBounds locations={locations} />
-              {locations.map((location, index) => (
+              <FitBounds locations={filteredLocations} />
+              {filteredLocations.map((location, index) => (
                 <Marker 
                   key={index} 
                   position={[location.lat, location.lng]}
@@ -203,6 +263,13 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
                       <h3 style={{ margin: '8px 0', fontSize: '16px', fontWeight: 'bold', color: '#1f2937', display: 'inline-block' }}>
                         {location.formName}
                       </h3>
+                      <div style={{ margin: '4px 0', fontSize: '12px', color: '#6b7280' }}>
+                        {location.fieldLabel === currentLocationLabel ? (
+                          <span style={{ display: 'inline-block', backgroundColor: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>السكن الحالي</span>
+                        ) : (
+                          <span style={{ display: 'inline-block', backgroundColor: '#a855f7', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>الموقع المرغوب</span>
+                        )}
+                      </div>
                       {location.address && (
                         <p style={{ margin: '8px 0', fontSize: '13px', color: '#4b5563', lineHeight: '1.5' }}>
                           {location.address}
@@ -236,10 +303,10 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
         </div>
 
         {/* Locations List - Simplified Table View - Hide in fullscreen */}
-        {!isFullscreen && locations.length > 0 && (
+        {!isFullscreen && filteredLocations.length > 0 && (
           <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">قائمة المواقع ({locations.length})</h2>
+              <h2 className="text-xl font-bold text-gray-900">قائمة المواقع ({filteredLocations.length})</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -253,7 +320,7 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {locations.map((location, index) => (
+                  {filteredLocations.map((location, index) => (
                     <tr 
                       key={index}
                       className="hover:bg-blue-50/50 transition-colors"
@@ -267,6 +334,13 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm font-semibold text-gray-900">{location.formName}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {location.fieldLabel === currentLocationLabel ? (
+                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded">السكن الحالي</span>
+                          ) : (
+                            <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-800 rounded">الموقع المرغوب</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm text-gray-700 max-w-xs">
@@ -300,8 +374,16 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
           </div>
         )}
 
+        {!isFullscreen && filteredLocations.length === 0 && locations.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-gray-600 text-lg">لا توجد مواقع لعرضها للتصفية المختارة</p>
+            <p className="text-gray-500 text-sm mt-2">جرب تغيير نوع الموقع لعرض مواقع أخرى</p>
+          </div>
+        )}
+
         {!isFullscreen && locations.length === 0 && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6">
             <div className="text-6xl mb-4">🗺️</div>
             <p className="text-gray-600 text-lg">لا توجد مواقع محددة بعد</p>
             <p className="text-gray-500 text-sm mt-2">ابدأ بإنشاء نماذج مع حقول موقع للحصول على بيانات على الخريطة</p>
@@ -311,4 +393,3 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
     </div>
   )
 }
-

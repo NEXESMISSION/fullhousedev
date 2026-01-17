@@ -18,7 +18,7 @@ export default async function MapPage() {
     `)
     .order('created_at', { ascending: false })
 
-  // Get all location values
+  // Get all location values with field labels
   const locationData: Array<{
     lat: number
     lng: number
@@ -26,6 +26,7 @@ export default async function MapPage() {
     formName: string
     submissionId: string
     createdAt: string
+    fieldLabel: string
   }> = []
 
   if (submissions) {
@@ -41,7 +42,7 @@ export default async function MapPage() {
       if (fields && fields.length > 0) {
         // Get submission values for location fields
         for (const field of fields) {
-          const fieldTyped = field as { id: string }
+          const fieldTyped = field as { id: string; label: string } 
           const { data: values } = await supabase
             .from('submission_values')
             .select('value')
@@ -61,6 +62,7 @@ export default async function MapPage() {
                   formName: submissionTyped.forms?.name || 'نموذج غير معروف',
                   submissionId: submissionTyped.id,
                   createdAt: submissionTyped.created_at,
+                  fieldLabel: fieldTyped.label,
                 })
               }
             } catch (e) {
