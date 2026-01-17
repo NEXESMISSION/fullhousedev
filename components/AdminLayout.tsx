@@ -60,11 +60,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <nav className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between h-12 sm:h-16">
+            <div className="flex items-center min-w-0 flex-1">
               <div className="flex-shrink-0">
-                <Link href="/admin" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <Link href="/admin" className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   {t.forms} Builder
                 </Link>
               </div>
@@ -84,15 +84,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 ))}
               </div>
             </div>
-            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className="flex items-center space-x-1.5 sm:space-x-3 rtl:space-x-reverse">
               {user && (
                 <>
-                  <span className="hidden sm:inline text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg">
+                  <span className="hidden lg:inline text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg truncate max-w-[120px]">
                     {user.email}
                   </span>
                   <button
                     onClick={handleLogout}
-                    className="text-sm font-medium text-gray-700 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                    className="text-xs sm:text-sm font-medium text-gray-700 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors"
                   >
                     {t.logout}
                   </button>
@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
               <Link
                 href="/"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs sm:text-sm font-medium text-gray-700 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors"
               >
                 {t.home}
               </Link>
@@ -108,14 +108,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
         
-        {/* Mobile Menu */}
-        <div className="md:hidden border-t border-gray-200 px-4 py-2">
-          <div className="flex space-x-2 rtl:space-x-reverse overflow-x-auto">
+        {/* Mobile Menu - More Compact */}
+        <div className="md:hidden border-t border-gray-200 px-2 sm:px-4 py-1.5 sm:py-2">
+          <div className="flex space-x-1.5 sm:space-x-2 rtl:space-x-reverse overflow-x-auto">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-shrink-0 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                   pathname === item.href
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
@@ -127,7 +127,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-6 md:py-8">
         {children}
       </main>
     </div>

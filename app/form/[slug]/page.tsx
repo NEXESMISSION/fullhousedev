@@ -30,12 +30,13 @@ export default async function PublicFormPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
-  console.log('[Public Form] Form found:', form.id, form.name)
+  const formTyped = form as { id: string; name: string }
+  console.log('[Public Form] Form found:', formTyped.id, formTyped.name)
 
   const { data: fields, error: fieldsError } = await supabase
     .from('fields')
     .select('*')
-    .eq('form_id', form.id)
+    .eq('form_id', formTyped.id)
     .eq('enabled', true)
     .order('order', { ascending: true })
 
@@ -45,6 +46,6 @@ export default async function PublicFormPage({ params }: { params: Promise<{ slu
 
   console.log('[Public Form] Loaded fields:', fields?.length || 0)
 
-  return <PublicForm form={form} fields={fields || []} />
+  return <PublicForm form={formTyped as any} fields={(fields || []) as any} />
 }
 

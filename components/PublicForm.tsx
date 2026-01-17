@@ -136,16 +136,18 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     try {
       const { data: submission, error: submissionError } = await supabase
         .from('submissions')
+        // @ts-ignore - Supabase type inference issue
         .insert({ form_id: form.id })
         .select()
         .single()
 
       if (submissionError) throw submissionError
 
+      const submissionTyped = submission as { id: string }
       const submissionValues = fields
         .filter((field) => formData[field.id])
         .map((field) => ({
-          submission_id: submission.id,
+          submission_id: submissionTyped.id,
           field_id: field.id,
           value: Array.isArray(formData[field.id])
             ? (formData[field.id] as any).join(', ')
@@ -155,15 +157,13 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
       if (submissionValues.length > 0) {
         const { error: valuesError } = await supabase
           .from('submission_values')
+          // @ts-ignore - Supabase type inference issue
           .insert(submissionValues)
 
         if (valuesError) throw valuesError
       }
 
       setSubmitted(true)
-      setTimeout(() => {
-        router.push('/')
-      }, 2000)
     } catch (error: any) {
       console.error('Error submitting form:', error)
       alert(`فشل إرسال النموذج: ${error?.message || 'خطأ غير معروف'}`)
@@ -295,19 +295,12 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     }
   }
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 sm:p-12 text-center">
-          <div className="text-6xl mb-6">✅</div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-            {t.formSubmitted}
-          </h2>
-          <p className="text-gray-600 mb-6">{t.thankYou}</p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      </div>
-    )
+  const handleFillAgain = () => {
+    setSubmitted(false)
+    setFormData({})
+    setErrors({})
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -379,6 +372,27 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
           </form>
         </div>
       </div>
+
+      {/* Success Popup Modal */}
+      {submitted && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleFillAgain}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center transform transition-all" onClick={(e) => e.stopPropagation()}>
+            <div className="text-6xl mb-4 animate-bounce">✅</div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+              تم الإرسال بنجاح!
+            </h2>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
+              شكراً لك! تم استلام طلبك بنجاح وسنتواصل معك قريباً.
+            </p>
+            <button
+              onClick={handleFillAgain}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold text-base hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              ملء النموذج مرة أخرى
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -62,7 +62,6 @@ export const ar = {
   deleteSubmission: 'حذف الإرسال',
   submissionDetails: 'تفاصيل الإرسال',
   fieldValues: 'قيم الحقول',
-  date: 'التاريخ',
   noSubmissions: 'لا توجد إرسالات بعد لهذا النموذج.',
   noSubmissionsMatch: 'لا توجد إرسالات تطابق البحث.',
   loadingSubmissions: 'جاري تحميل الإرسالات...',

@@ -29,6 +29,7 @@ export async function createHousingForm() {
   
   const { data: form, error: formError } = await supabase
     .from('forms')
+    // @ts-ignore - Supabase type inference issue
     .insert({
       name: formName,
       description: 'نموذج شامل لطلب امتلاك مسكن للمستأجرين',
@@ -44,7 +45,8 @@ export async function createHousingForm() {
     return { error: formError }
   }
 
-  console.log('Form created:', form.id, form.public_url)
+  const formTyped = form as { id: string; public_url: string }
+  console.log('Form created:', formTyped.id, formTyped.public_url)
 
   // Define all fields
   const fields: FieldDefinition[] = [
@@ -208,7 +210,7 @@ export async function createHousingForm() {
 
   // Insert all fields
   const fieldsToInsert = fields.map(field => ({
-    form_id: form.id,
+    form_id: formTyped.id,
     label: field.label,
     type: field.type,
     required: field.required,
@@ -220,6 +222,7 @@ export async function createHousingForm() {
 
   const { data: createdFields, error: fieldsError } = await supabase
     .from('fields')
+    // @ts-ignore - Supabase type inference issue
     .insert(fieldsToInsert)
     .select()
 

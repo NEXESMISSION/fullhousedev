@@ -26,6 +26,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
     status: form.status,
     media_type: (form.media_type || 'none') as 'none' | 'image' | 'video' | 'logo',
     media_url: form.media_url || '',
+    tutorial_video_url: (form as any).tutorial_video_url || '',
   })
   const [showFieldEditor, setShowFieldEditor] = useState(false)
   const [editingField, setEditingField] = useState<Field | null>(null)
@@ -37,6 +38,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
     try {
       const { error } = await supabase
         .from('forms')
+        // @ts-ignore - Supabase type inference issue
         .update({
           name: formData.name,
           description: formData.description,
@@ -124,8 +126,8 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
     const swapField = fields[newIndex]
 
     try {
-      await supabase.from('fields').update({ order: swapField.order }).eq('id', field.id)
-      await supabase.from('fields').update({ order: field.order }).eq('id', swapField.id)
+      await (supabase.from('fields') as any).update({ order: swapField.order }).eq('id', field.id)
+      await (supabase.from('fields') as any).update({ order: field.order }).eq('id', swapField.id)
       refreshFields()
     } catch (error) {
       console.error('Error reordering fields:', error)
@@ -134,19 +136,19 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.editForm}</h1>
-        <p className="mt-2 text-sm sm:text-base text-gray-600">{t.manageFormSettings}</p>
+    <div className="space-y-3 sm:space-y-6">
+      <div className="mb-3 sm:mb-6">
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">{t.editForm}</h1>
+        <p className="mt-1 text-xs sm:text-sm md:text-base text-gray-600">{t.manageFormSettings}</p>
       </div>
 
       {/* Form Settings Card */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 sm:p-8">
-        <h2 className="text-xl font-semibold mb-6 text-gray-900">{t.formSettings}</h2>
-        <form onSubmit={handleFormUpdate} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-200 p-3 sm:p-6 md:p-8">
+        <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-3 sm:mb-6 text-gray-900">{t.formSettings}</h2>
+        <form onSubmit={handleFormUpdate} className="space-y-3 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 {t.formName} *
               </label>
               <input
@@ -156,19 +158,19 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder={t.formNamePlaceholder}
-                className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-base transition-all"
+                className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all"
               />
             </div>
 
             <div>
-              <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="status" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 {t.status}
               </label>
               <select
                 id="status"
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-base transition-all bg-white"
+                className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all bg-white"
               >
                 <option value="draft">{t.draft}</option>
                 <option value="active">{t.active}</option>
@@ -178,7 +180,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               {t.description}
             </label>
             <textarea
@@ -187,16 +189,16 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder={t.descriptionPlaceholder}
-              className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-base transition-all resize-none"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all resize-none"
             />
           </div>
 
           {/* Media Settings */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.mediaSettings}</h3>
-            <div className="space-y-4">
+          <div className="border-t border-gray-200 pt-3 sm:pt-6">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 sm:mb-4">{t.mediaSettings}</h3>
+            <div className="space-y-2 sm:space-y-4">
               <div>
-                <label htmlFor="media_type" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="media_type" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                   {t.mediaType}
                 </label>
                 <select
@@ -207,7 +209,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
                     media_type: e.target.value as any,
                     media_url: e.target.value === 'none' ? '' : formData.media_url
                   })}
-                  className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-base transition-all bg-white"
+                  className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all bg-white"
                 >
                   <option value="none">{t.noMedia}</option>
                   <option value="logo">{t.logo}</option>
@@ -218,7 +220,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
 
               {formData.media_type !== 'none' && (
                 <div>
-                  <label htmlFor="media_url" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="media_url" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                     {t.mediaUrl}
                   </label>
                   <input
@@ -227,7 +229,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
                     value={formData.media_url}
                     onChange={(e) => setFormData({ ...formData, media_url: e.target.value })}
                     placeholder={t.mediaUrlPlaceholder}
-                    className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-3 text-base transition-all"
+                    className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all"
                   />
                   {formData.media_url && (
                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
@@ -253,16 +255,32 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
             </div>
           </div>
 
+          {/* Tutorial Video Link */}
+          <div className="border-t border-gray-200 pt-3 sm:pt-6">
+            <label htmlFor="tutorial_video_url" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
+              رابط فيديو توضيحي (اختياري)
+            </label>
+            <input
+              type="url"
+              id="tutorial_video_url"
+              value={formData.tutorial_video_url}
+              onChange={(e) => setFormData({ ...formData, tutorial_video_url: e.target.value })}
+              placeholder="https://youtube.com/watch?v=... أو رابط فيديو آخر"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-2 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm md:text-base transition-all"
+            />
+            <p className="mt-1 text-xs text-gray-500">رابط فيديو يوضح كيفية ملء النموذج (YouTube, Vimeo, إلخ)</p>
+          </div>
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               {t.publicUrlLabel}
             </label>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600 font-mono">/form/{form.public_url}</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+              <span className="text-xs sm:text-sm text-gray-600 font-mono break-all">/form/{form.public_url}</span>
               <a
                 href={`/form/${form.public_url}`}
                 target="_blank"
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
               >
                 <span>🔗</span>
                 {t.viewForm}
@@ -270,18 +288,18 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={handleDeleteForm}
-              className="px-6 py-3 border-2 border-red-300 rounded-xl text-sm font-semibold text-red-700 bg-white hover:bg-red-50 transition-all"
+              className="px-3 sm:px-6 py-2 sm:py-3 border-2 border-red-300 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-red-700 bg-white hover:bg-red-50 transition-all"
             >
               {t.deleteForm}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg"
+              className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg"
             >
               {loading ? t.loading : t.saveChanges}
             </button>

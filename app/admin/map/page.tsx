@@ -31,33 +31,36 @@ export default async function MapPage() {
   if (submissions) {
     for (const submission of submissions) {
       // Get fields for this form
+      const submissionTyped = submission as { form_id: string; id: string; created_at: string; forms?: any }
       const { data: fields } = await supabase
         .from('fields')
         .select('id, label, type')
-        .eq('form_id', submission.form_id)
+        .eq('form_id', submissionTyped.form_id)
         .eq('type', 'location')
 
       if (fields && fields.length > 0) {
         // Get submission values for location fields
         for (const field of fields) {
+          const fieldTyped = field as { id: string }
           const { data: values } = await supabase
             .from('submission_values')
             .select('value')
-            .eq('submission_id', submission.id)
-            .eq('field_id', field.id)
+            .eq('submission_id', submissionTyped.id)
+            .eq('field_id', fieldTyped.id)
             .single()
 
-          if (values?.value) {
+          const valuesTyped = values as { value: string } | null
+          if (valuesTyped?.value) {
             try {
-              const location = JSON.parse(values.value)
+              const location = JSON.parse(valuesTyped.value)
               if (location.lat && location.lng) {
                 locationData.push({
                   lat: location.lat,
                   lng: location.lng,
                   address: location.address,
-                  formName: (submission.forms as any)?.name || 'نموذج غير معروف',
-                  submissionId: submission.id,
-                  createdAt: submission.created_at,
+                  formName: submissionTyped.forms?.name || 'نموذج غير معروف',
+                  submissionId: submissionTyped.id,
+                  createdAt: submissionTyped.created_at,
                 })
               }
             } catch (e) {

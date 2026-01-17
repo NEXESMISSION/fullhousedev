@@ -80,22 +80,23 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
       if (error) throw error
 
       if (submissionsData) {
-        const submissionIds = submissionsData.map((s) => s.id)
+        const submissionsTyped = submissionsData as Array<{ id: string; form_id: string; created_at: string; forms?: any }>
+        const submissionIds = submissionsTyped.map((s) => s.id)
         const { data: valuesData } = await supabase
           .from('submission_values')
           .select('*')
           .in('submission_id', submissionIds)
 
-        const submissionsWithValues = submissionsData.map((submission) => ({
+        const submissionsWithValues = submissionsTyped.map((submission) => ({
           ...submission,
-          form: (submission as any).forms,
-          values: valuesData?.filter((v) => v.submission_id === submission.id) || [],
+          form: submission.forms,
+          values: valuesData?.filter((v) => (v as any).submission_id === submission.id) || [],
         }))
 
         setSubmissions(submissionsWithValues)
 
         // Load fields for all forms
-        const formIds = [...new Set(submissionsData.map(s => s.form_id))]
+        const formIds = [...new Set(submissionsTyped.map(s => s.form_id))]
         for (const formId of formIds) {
           await loadFieldsForForm(formId)
         }
@@ -213,33 +214,32 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className="space-y-3 sm:space-y-6 p-2 sm:p-4 md:p-6">
       {/* Header with Export Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex-1"></div>
+      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
         <button
           onClick={handleExport}
           disabled={filteredAndSortedSubmissions.length === 0}
-          className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl shadow-md hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-3 sm:px-5 py-1.5 sm:py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg sm:rounded-xl shadow-md hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2"
         >
           <span>📥</span>
           {t.exportToExcel}
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Filters - Compact on mobile */}
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-200 p-2.5 sm:p-4 md:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {/* Form Filter */}
           <div>
-            <label htmlFor="form-filter" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="form-filter" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               {t.selectForm}
             </label>
             <select
               id="form-filter"
               value={selectedFormId}
               onChange={(e) => setSelectedFormId(e.target.value)}
-              className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base px-3 py-2.5 bg-white transition-all"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2.5 bg-white transition-all"
             >
               <option value="all">{t.allForms}</option>
               {forms.map((form) => (
@@ -252,7 +252,7 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
 
           {/* Search */}
           <div>
-            <label htmlFor="search" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="search" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               {t.searchSubmissions}
             </label>
             <input
@@ -261,20 +261,20 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.searchPlaceholder}
-              className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base px-3 py-2.5 transition-all"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2.5 transition-all"
             />
           </div>
 
           {/* Sort By */}
           <div>
-            <label htmlFor="sort-by" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="sort-by" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               ترتيب حسب
             </label>
             <select
               id="sort-by"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'date' | 'form')}
-              className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base px-3 py-2.5 bg-white transition-all"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2.5 bg-white transition-all"
             >
               <option value="date">التاريخ</option>
               <option value="form">النموذج</option>
@@ -283,14 +283,14 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
 
           {/* Sort Order */}
           <div>
-            <label htmlFor="sort-order" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="sort-order" className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
               الترتيب
             </label>
             <select
               id="sort-order"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-              className="w-full rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base px-3 py-2.5 bg-white transition-all"
+              className="w-full rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1.5 sm:py-2.5 bg-white transition-all"
             >
               <option value="desc">الأحدث أولاً</option>
               <option value="asc">الأقدم أولاً</option>
@@ -299,8 +299,8 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
         </div>
 
         {/* Results Count */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
+        <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 border-t border-gray-200">
+          <p className="text-xs sm:text-sm text-gray-600">
             عرض <span className="font-semibold text-gray-900">{filteredAndSortedSubmissions.length}</span> من أصل <span className="font-semibold text-gray-900">{submissions.length}</span> إرسال
           </p>
         </div>

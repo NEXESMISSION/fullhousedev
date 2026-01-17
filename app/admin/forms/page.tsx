@@ -13,6 +13,15 @@ export default async function FormsPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
+  const formsList = (forms || []) as Array<{
+    id: string
+    name: string
+    description: string | null
+    status: 'draft' | 'active' | 'disabled'
+    created_at: string
+    public_url: string
+  }>
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -32,11 +41,11 @@ export default async function FormsPage() {
 
       {/* Forms List */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        {forms && forms.length > 0 ? (
+        {formsList && formsList.length > 0 ? (
           <>
             {/* Mobile Card View */}
             <div className="block sm:hidden divide-y divide-gray-200">
-              {forms.map((form) => (
+              {formsList.map((form) => (
                 <div key={form.id} className="p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
@@ -104,7 +113,7 @@ export default async function FormsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {forms.map((form) => (
+                  {formsList.map((form) => (
                     <tr key={form.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 lg:px-6 py-4">
                         <div className="text-sm font-semibold text-gray-900">{form.name}</div>
