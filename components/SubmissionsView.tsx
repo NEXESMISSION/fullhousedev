@@ -33,6 +33,7 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'form'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     loadAllSubmissions()
@@ -215,8 +216,15 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
 
   return (
     <div className="space-y-3 sm:space-y-6 p-2 sm:p-4 md:p-6">
-      {/* Header with Export Button */}
-      <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
+      {/* Header with Filters Toggle and Export Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="w-full sm:w-auto px-3 sm:px-5 py-1.5 sm:py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-lg sm:rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-400 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 sm:gap-2"
+        >
+          <span>{showFilters ? '▲' : '▼'}</span>
+          <span>فلترة وترتيب</span>
+        </button>
         <button
           onClick={handleExport}
           disabled={filteredAndSortedSubmissions.length === 0}
@@ -227,8 +235,9 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
         </button>
       </div>
 
-      {/* Filters - Compact on mobile */}
-      <div className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-200 p-2.5 sm:p-4 md:p-6">
+      {/* Filters - Collapsible */}
+      {showFilters && (
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-200 p-2.5 sm:p-4 md:p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {/* Form Filter */}
           <div>
@@ -298,13 +307,14 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
           </div>
         </div>
 
-        {/* Results Count */}
-        <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 border-t border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600">
-            عرض <span className="font-semibold text-gray-900">{filteredAndSortedSubmissions.length}</span> من أصل <span className="font-semibold text-gray-900">{submissions.length}</span> إرسال
-          </p>
+          {/* Results Count */}
+          <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 border-t border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">
+              عرض <span className="font-semibold text-gray-900">{filteredAndSortedSubmissions.length}</span> من أصل <span className="font-semibold text-gray-900">{submissions.length}</span> إرسال
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Submissions List */}
       {loading ? (
