@@ -42,8 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const navItems = [
-    { href: '/admin', label: t.dashboard },
-    { href: '/admin/submissions', label: t.submissions },
+    { href: '/admin', label: 'الإرسالات' },
     { href: '/admin/map', label: 'خريطة المواقع' },
   ]
 

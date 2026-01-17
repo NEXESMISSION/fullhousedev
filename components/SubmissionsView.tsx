@@ -213,13 +213,10 @@ export default function SubmissionsView({ forms }: SubmissionsViewProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* Header with Export Button */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.submissions}</h1>
-          <p className="mt-2 text-sm sm:text-base text-gray-600">عرض وإدارة جميع الإرسالات</p>
-        </div>
+        <div className="flex-1"></div>
         <button
           onClick={handleExport}
           disabled={filteredAndSortedSubmissions.length === 0}

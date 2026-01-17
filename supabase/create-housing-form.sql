@@ -18,7 +18,7 @@
         status,
         public_url,
         media_type,
-        media_url
+        media_url 
     ) VALUES (
         'نموذج طلب امتلاك مسكن (للمكتريين)',
         'نموذج شامل لطلب امتلاك مسكن للمستأجرين',
