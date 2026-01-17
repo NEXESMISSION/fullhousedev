@@ -62,7 +62,6 @@ const formTemplates = {
 
 export default function NewFormPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState<'manual' | 'template'>('template')
   const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof formTemplates | null>(null)
@@ -93,6 +92,7 @@ export default function NewFormPage() {
     setLoading(true)
 
     try {
+      const supabase = createClient()
       const publicUrl = generatePublicUrl()
       const payload = {
         ...formData,

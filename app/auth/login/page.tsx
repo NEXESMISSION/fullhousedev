@@ -8,20 +8,20 @@ import { ar as t } from '@/lib/translations'
 function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const redirect = searchParams.get('redirect') || '/admin'
         router.push(redirect)
       }
     })
-  }, [router, searchParams, supabase])
+  }, [router, searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +29,7 @@ function LoginFormContent() {
     setError(null)
 
     try {
+      const supabase = createClient()
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -56,6 +57,7 @@ function LoginFormContent() {
     setError(null)
 
     try {
+      const supabase = createClient()
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,

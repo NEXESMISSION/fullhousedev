@@ -10,7 +10,6 @@ type FormInsert = Database['public']['Tables']['forms']['Insert']
 
 export default function CreateHousingFormPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [formUrl, setFormUrl] = useState('')
@@ -20,6 +19,7 @@ export default function CreateHousingFormPage() {
     setSuccess(false)
 
     try {
+      const supabase = createClient()
       // Create the form
       const formName = 'نموذج طلب امتلاك مسكن (للمكتريين)'
       const publicUrl = `housing-request-${Date.now()}`
