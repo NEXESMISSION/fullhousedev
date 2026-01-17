@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "طريقك من الإيجار إلى امتلاك مسكن",
   description: "حلول ذكية لمساعدتك في الانتقال من الإيجار إلى امتلاك منزلك الأول",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -29,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
