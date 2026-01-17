@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { tunisiaGovernorates, tunisiaCities } from '@/lib/tunisia-data'
+import { Database } from '@/lib/supabase/database.types'
+
+type FormInsert = Database['public']['Tables']['forms']['Insert']
 
 export default function CreateHousingFormPage() {
   const router = useRouter()
@@ -21,19 +24,23 @@ export default function CreateHousingFormPage() {
       const formName = 'نموذج طلب امتلاك مسكن (للمكتريين)'
       const publicUrl = `housing-request-${Date.now()}`
 
+      const formData: FormInsert = {
+        name: formName,
+        description: 'نموذج شامل لطلب امتلاك مسكن للمستأجرين',
+        status: 'active',
+        public_url: publicUrl,
+        media_type: 'none',
+      }
+
       const { data: form, error: formError } = await supabase
         .from('forms')
-        .insert({
-          name: formName,
-          description: 'نموذج شامل لطلب امتلاك مسكن للمستأجرين',
-          status: 'active',
-          public_url: publicUrl,
-          media_type: 'none',
-        })
+        .insert(formData as any)
         .select()
-        .single()
+        .single() as { data: { id: string } | null; error: any }
 
-      if (formError) throw formError
+      if (formError || !form) throw formError || new Error('Failed to create form')
+      
+      const createdForm = form as { id: string; public_url: string }
 
       // Define all fields
       const fields = [
@@ -74,7 +81,7 @@ export default function CreateHousingFormPage() {
 
       // Insert all fields
       const fieldsToInsert = fields.map((field: any) => ({
-        form_id: form.id,
+        form_id: createdForm.id,
         label: field.label,
         type: field.type,
         required: field.required,
@@ -86,16 +93,16 @@ export default function CreateHousingFormPage() {
 
       const { error: fieldsError } = await supabase
         .from('fields')
-        .insert(fieldsToInsert)
+        .insert(fieldsToInsert as any)
 
       if (fieldsError) throw fieldsError
 
       setSuccess(true)
-      setFormUrl(`/form/${form.public_url}`)
+      setFormUrl(`/form/${createdForm.public_url}`)
       
       // Redirect to form editor after 2 seconds
       setTimeout(() => {
-        router.push(`/admin/forms/${form.id}`)
+        router.push(`/admin/forms/${createdForm.id}`)
       }, 2000)
     } catch (error: any) {
       console.error('Error creating form:', error)

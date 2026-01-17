@@ -103,7 +103,7 @@ export default function NewFormPage() {
       // Create the form
       const { data: form, error: formError } = await supabase
         .from('forms')
-        .insert(payload)
+        .insert(payload as any)
         .select()
         .single()
 
@@ -113,11 +113,18 @@ export default function NewFormPage() {
         return
       }
 
+      if (!form) {
+        alert('فشل إنشاء النموذج')
+        return
+      }
+
+      const createdForm = form as { id: string }
+
       // If a template is selected, create the fields
       if (selectedTemplate && mode === 'template') {
         const template = formTemplates[selectedTemplate]
-        const fieldsToInsert = template.fields.map((field, index) => ({
-          form_id: form.id,
+        const fieldsToInsert = template.fields.map((field, index) => ({ 
+          form_id: createdForm.id,
           label: field.label,
           type: field.type,
           required: field.required,
@@ -129,17 +136,17 @@ export default function NewFormPage() {
 
         const { error: fieldsError } = await supabase
           .from('fields')
-          .insert(fieldsToInsert)
+          .insert(fieldsToInsert as any)
 
         if (fieldsError) {
           console.error('[Fields Creation] Error:', fieldsError)
           alert(`تم إنشاء النموذج ولكن فشل إضافة الحقول: ${fieldsError.message}`)
-          router.push(`/admin/forms/${form.id}`)
+          router.push(`/admin/forms/${createdForm.id}`)
           return
         }
       }
 
-      router.push(`/admin/forms/${form.id}`)
+      router.push(`/admin/forms/${createdForm.id}`)
     } catch (error: any) {
       console.error('[Form Creation] Error caught:', error)
       alert(`فشل إنشاء النموذج: ${error?.message || 'خطأ غير معروف'}`)
