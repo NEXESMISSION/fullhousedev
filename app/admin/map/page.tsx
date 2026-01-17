@@ -48,7 +48,7 @@ export default async function MapPage() {
             .select('value')
             .eq('submission_id', submissionTyped.id)
             .eq('field_id', fieldTyped.id)
-            .single()
+            .maybeSingle()
 
           const valuesTyped = values as { value: string } | null
           if (valuesTyped?.value) {

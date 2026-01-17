@@ -10,7 +10,7 @@ export default async function EditFormPage({ params }: { params: Promise<{ id: s
     .from('forms')
     .select('*')
     .eq('id', id)
-    .single()
+    .maybeSingle()
 
   if (error || !form) {
     notFound()

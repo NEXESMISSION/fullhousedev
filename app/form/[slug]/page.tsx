@@ -13,15 +13,18 @@ export default async function PublicFormPage({ params }: { params: Promise<{ slu
     .select('*')
     .eq('public_url', slug)
     .eq('status', 'active')
-    .single()
+    .maybeSingle()
 
+  // Handle 404 or missing form gracefully
   if (formError) {
-    console.error('[Public Form] Error loading form:', {
-      message: formError.message,
-      details: formError.details,
-      code: formError.code,
-      slug: slug,
-    })
+    // Only log non-404 errors (404 is expected when form doesn't exist)
+    if (formError.code !== 'PGRST116') {
+      console.error('[Public Form] Error loading form:', {
+        message: formError.message,
+        code: formError.code,
+        slug: slug,
+      })
+    }
     notFound()
   }
 
