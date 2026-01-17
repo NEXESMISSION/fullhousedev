@@ -6,20 +6,15 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: false,
   },
-  // Build optimization
-  swcMinify: true,
   // Ensure static files are properly handled
   trailingSlash: false,
   // Optimize bundle size
   compress: true,
   // Production optimizations
   productionBrowserSourceMaps: false,
-  // Type checking during build (set to true to skip for faster builds)
+  // Type checking during build
   typescript: {
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 };
 
