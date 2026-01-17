@@ -1,44 +1,49 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+// import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { usePathname } from 'next/navigation'
+// import { useRouter } from 'next/navigation'
+// import { createClient } from '@/lib/supabase/client'
 import { ar as t } from '@/lib/translations'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  // Auth temporarily disabled
+  // const router = useRouter()
+  // const supabase = createClient()
+  // const [user, setUser] = useState<any>(null)
+  const user = null // No auth check for now
+  const loading = false // No loading state needed
 
-  useEffect(() => {
-    checkUser()
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (!session?.user && pathname.startsWith('/admin')) {
-        router.push('/auth/login')
-      }
-    })
+  // Auth checks removed temporarily
+  // useEffect(() => {
+  //   checkUser()
+  //   
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setUser(session?.user ?? null)
+  //     if (!session?.user && pathname.startsWith('/admin')) {
+  //       router.push('/auth/login')
+  //     }
+  //   })
 
-    return () => subscription.unsubscribe()
-  }, [pathname, router, supabase])
+  //   return () => subscription.unsubscribe()
+  // }, [pathname, router, supabase])
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
-    setLoading(false)
-    
-    if (!user && pathname.startsWith('/admin')) {
-      router.push('/auth/login')
-    }
-  }
+  // const checkUser = async () => {
+  //   const { data: { user } } = await supabase.auth.getUser()
+  //   setUser(user)
+  //   setLoading(false)
+  //   
+  //   if (!user && pathname.startsWith('/admin')) {
+  //     router.push('/auth/login')
+  //   }
+  // }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth/login')
+    // Auth temporarily disabled
+    // await supabase.auth.signOut()
+    // router.push('/auth/login')
   }
 
   const navItems = [

@@ -45,31 +45,32 @@ export async function middleware(request: NextRequest) {
       }
     )
 
-    // Protect admin routes
-    if (request.nextUrl.pathname.startsWith('/admin')) {
-      try {
-        const {
-          data: { user },
-          error: authError,
-        } = await supabase.auth.getUser()
+    // Protect admin routes - DISABLED TEMPORARILY
+    // Auth checks removed for now
+    // if (request.nextUrl.pathname.startsWith('/admin')) {
+    //   try {
+    //     const {
+    //       data: { user },
+    //       error: authError,
+    //     } = await supabase.auth.getUser()
 
-        // If there's an auth error, still allow access but let the page handle it
-        // This prevents middleware from blocking legitimate requests
-        if (authError) {
-          console.error('[Middleware] Auth error:', authError.message)
-        }
+    //     // If there's an auth error, still allow access but let the page handle it
+    //     // This prevents middleware from blocking legitimate requests
+    //     if (authError) {
+    //       console.error('[Middleware] Auth error:', authError.message)
+    //     }
 
-        if (!user && !authError) {
-          const url = request.nextUrl.clone()
-          url.pathname = '/auth/login'
-          url.searchParams.set('redirect', request.nextUrl.pathname)
-          return NextResponse.redirect(url)
-        }
-      } catch (error) {
-        console.error('[Middleware] Error checking user auth:', error)
-        // Continue with the request if auth check fails
-      }
-    }
+    //     if (!user && !authError) {
+    //       const url = request.nextUrl.clone()
+    //       url.pathname = '/auth/login'
+    //       url.searchParams.set('redirect', request.nextUrl.pathname)
+    //       return NextResponse.redirect(url)
+    //     }
+    //   } catch (error) {
+    //     console.error('[Middleware] Error checking user auth:', error)
+    //     // Continue with the request if auth check fails
+    //   }
+    // }
 
     // Protect login page - redirect to home if already logged in
     if (request.nextUrl.pathname === '/auth/login') {
