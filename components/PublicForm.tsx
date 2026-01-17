@@ -1,9 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
+import { ar as t } from '@/lib/translations'
+import MediaDisplay from './MediaDisplay'
+import LocationPickerFree from './LocationPickerFree'
+import { tunisiaGovernorates, tunisiaCities, getCitiesForGovernorate } from '@/lib/tunisia-data'
 
 type Form = Database['public']['Tables']['forms']['Row']
 type Field = Database['public']['Tables']['fields']['Row']
@@ -19,11 +23,74 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [submitted, setSubmitted] = useState(false)
+  
+  // Track which fields should be visible based on conditional logic
+  const [visibleFields, setVisibleFields] = useState<Set<string>>(new Set(fields.map(f => f.id)))
+
+  // Check if a field should be visible based on conditional logic
+  const shouldShowField = (field: Field): boolean => {
+    // Conditional field: "في صورة نعم، قيمة القسط الشهري" shows only when "هل يوجد قرض حالي؟" is "نعم"
+    if (field.label === 'في صورة نعم، قيمة القسط الشهري') {
+      const loanField = fields.find(f => f.label === 'هل يوجد قرض حالي؟')
+      if (loanField) {
+        const loanValue = formData[loanField.id]
+        return loanValue === 'نعم'
+      }
+      return false
+    }
+    return true
+  }
+
+  // Update visible fields when form data changes
+  useEffect(() => {
+    const visible = new Set<string>()
+    fields.forEach(field => {
+      if (shouldShowField(field)) {
+        visible.add(field.id)
+      }
+    })
+    setVisibleFields(visible)
+  }, [formData, fields])
 
   const handleChange = (fieldId: string, value: string) => {
+    const field = fields.find(f => f.id === fieldId)
+    
+    // Clear city field if governorate changes
+    if (field?.label === 'الولاية الحالية') {
+      const cityField = fields.find(f => f.label === 'المدينة / المعتمدية')
+      if (cityField) {
+        setFormData(prev => {
+          const newData = { ...prev, [fieldId]: value }
+          delete newData[cityField.id]
+          return newData
+        })
+        if (errors[cityField.id]) {
+          setErrors(prev => {
+            const newErrors = { ...prev }
+            delete newErrors[cityField.id]
+            return newErrors
+          })
+        }
+        return
+      }
+    }
+    
     setFormData({ ...formData, [fieldId]: value })
     if (errors[fieldId]) {
       setErrors({ ...errors, [fieldId]: '' })
+    }
+    
+    // Clear dependent field if parent field changes
+    if (field?.label === 'هل يوجد قرض حالي؟' && value !== 'نعم') {
+      const dependentField = fields.find(f => f.label === 'في صورة نعم، قيمة القسط الشهري')
+      if (dependentField) {
+        setFormData(prev => {
+          const newData = { ...prev }
+          delete newData[dependentField.id]
+          return newData
+        })
+      }
     }
   }
 
@@ -31,23 +98,24 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     const newErrors: Record<string, string> = {}
 
     fields.forEach((field) => {
-      if (field.required && !formData[field.id]?.trim()) {
-        newErrors[field.id] = `${field.label} is required`
+      // Only validate if field is visible and required
+      if (field.required && visibleFields.has(field.id) && !formData[field.id]?.trim()) {
+        newErrors[field.id] = `${field.label} ${t.requiredField}`
       }
 
       if (formData[field.id]) {
         const value = formData[field.id].trim()
 
         if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors[field.id] = 'Please enter a valid email address'
+          newErrors[field.id] = t.invalidEmail
         }
 
         if (field.type === 'number' && isNaN(Number(value))) {
-          newErrors[field.id] = 'Please enter a valid number'
+          newErrors[field.id] = t.invalidNumber
         }
 
         if (field.type === 'phone' && !/^[\d\s\-\+\(\)]+$/.test(value)) {
-          newErrors[field.id] = 'Please enter a valid phone number'
+          newErrors[field.id] = t.invalidPhone
         }
       }
     })
@@ -66,7 +134,6 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     setLoading(true)
 
     try {
-      // Create submission
       const { data: submission, error: submissionError } = await supabase
         .from('submissions')
         .insert({ form_id: form.id })
@@ -75,7 +142,6 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
 
       if (submissionError) throw submissionError
 
-      // Create submission values
       const submissionValues = fields
         .filter((field) => formData[field.id])
         .map((field) => ({
@@ -94,11 +160,13 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
         if (valuesError) throw valuesError
       }
 
-      alert('Form submitted successfully! Thank you.')
-      router.push('/')
-    } catch (error) {
+      setSubmitted(true)
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+    } catch (error: any) {
       console.error('Error submitting form:', error)
-      alert('Failed to submit form. Please try again.')
+      alert(`فشل إرسال النموذج: ${error?.message || 'خطأ غير معروف'}`)
     } finally {
       setLoading(false)
     }
@@ -109,6 +177,29 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     const error = errors[field.id]
     const options = field.options as string[] | null
 
+    const baseInputClass = `mt-2 block w-full rounded-xl border-2 transition-all duration-200 focus:ring-2 focus:ring-offset-0 text-base px-4 py-3 ${
+      error 
+        ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50' 
+        : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200 bg-white hover:border-gray-300'
+    }`
+
+    // Handle dynamic city options based on governorate selection
+    let displayOptions = options || []
+    if (field.label === 'المدينة / المعتمدية') {
+      const currentGovField = fields.find(f => f.label === 'الولاية الحالية')
+      if (currentGovField) {
+        const selectedGov = formData[currentGovField.id]
+        if (selectedGov) {
+          const gov = tunisiaGovernorates.find(g => g.name === selectedGov)
+          if (gov) {
+            displayOptions = tunisiaCities[gov.id] || []
+          }
+        } else {
+          displayOptions = []
+        }
+      }
+    }
+
     switch (field.type) {
       case 'textarea':
         return (
@@ -117,11 +208,9 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
             value={value}
             onChange={(e) => handleChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
-            required={field.required}
-            rows={4}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border ${
-              error ? 'border-red-500' : ''
-            }`}
+            required={field.required && visibleFields.has(field.id)}
+            rows={5}
+            className={baseInputClass}
           />
         )
 
@@ -131,13 +220,11 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
             id={field.id}
             value={value}
             onChange={(e) => handleChange(field.id, e.target.value)}
-            required={field.required}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border ${
-              error ? 'border-red-500' : ''
-            }`}
+            required={field.required && visibleFields.has(field.id)}
+            className={baseInputClass}
           >
-            <option value="">Select an option...</option>
-            {options?.map((option, index) => (
+            <option value="">-- {t.selectForm} --</option>
+            {displayOptions.map((option, index) => (
               <option key={index} value={option}>
                 {option}
               </option>
@@ -147,12 +234,12 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
 
       case 'checkbox':
         return (
-          <div className="mt-1 space-y-2">
+          <div className="mt-2 space-y-3">
             {options?.map((option, index) => {
               const currentValues = (formData[field.id] || '').split(', ').filter(Boolean)
               const isChecked = currentValues.includes(option)
               return (
-                <label key={index} className="flex items-center">
+                <label key={index} className="flex items-center p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all bg-white">
                   <input
                     type="checkbox"
                     checked={isChecked}
@@ -162,9 +249,9 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
                         : currentValues.filter((v) => v !== option)
                       handleChange(field.id, newValues.join(', '))
                     }}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ml-3"
                   />
-                  <span className="ml-2 text-sm text-gray-700">{option}</span>
+                  <span className="text-gray-900 font-medium">{option}</span>
                 </label>
               )
             })}
@@ -179,10 +266,17 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
             value={value}
             onChange={(e) => handleChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
-            required={field.required}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border ${
-              error ? 'border-red-500' : ''
-            }`}
+            required={field.required && visibleFields.has(field.id)}
+            className={baseInputClass}
+          />
+        )
+
+      case 'location':
+        return (
+          <LocationPickerFree
+            value={value}
+            onChange={(val) => handleChange(field.id, val)}
+            required={field.required && visibleFields.has(field.id)}
           />
         )
 
@@ -194,45 +288,92 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
             value={value}
             onChange={(e) => handleChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
-            required={field.required}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border ${
-              error ? 'border-red-500' : ''
-            }`}
+            required={field.required && visibleFields.has(field.id)}
+            className={baseInputClass}
           />
         )
     }
   }
 
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 sm:p-12 text-center">
+          <div className="text-6xl mb-6">✅</div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+            {t.formSubmitted}
+          </h2>
+          <p className="text-gray-600 mb-6">{t.thankYou}</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{form.name}</h1>
-          {form.description && (
-            <p className="text-gray-600 mb-8">{form.description}</p>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 sm:py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          {/* Media Display */}
+          <MediaDisplay 
+            mediaType={form.media_type || 'none'} 
+            mediaUrl={form.media_url} 
+            formName={form.name}
+          />
+          
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{form.name}</h1>
+            {form.description && (
+              <p className="text-blue-100 text-sm sm:text-base">{form.description}</p>
+            )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {fields.map((field) => (
-              <div key={field.id}>
-                <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && <span className="text-red-500 ml-1">*</span>}
-                </label>
-                {renderField(field)}
-                {errors[field.id] && (
-                  <p className="mt-1 text-sm text-red-600">{errors[field.id]}</p>
-                )}
-              </div>
-            ))}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+            {fields.map((field, index) => {
+              // Only render field if it should be visible
+              if (!visibleFields.has(field.id)) {
+                return null
+              }
+              
+              return (
+                <div key={field.id} className="space-y-2">
+                  <label htmlFor={field.id} className="block text-sm font-semibold text-gray-700">
+                    {field.label}
+                    {field.required && visibleFields.has(field.id) && (
+                      <span className="text-red-500 mr-1">*</span>
+                    )}
+                  </label>
+                  {renderField(field)}
+                  {errors[field.id] && (
+                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
+                      <span>⚠️</span>
+                      {errors[field.id]}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
 
-            <div className="pt-4">
+            {/* Submit Button */}
+            <div className="pt-6 border-t border-gray-200">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-4 px-6 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                {loading ? 'Submitting...' : 'Submit'}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{t.submitting}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>📤</span>
+                    <span>{t.submit}</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -241,4 +382,3 @@ export default function PublicForm({ form, fields }: PublicFormProps) {
     </div>
   )
 }
-

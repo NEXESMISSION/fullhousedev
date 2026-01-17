@@ -16,6 +16,8 @@ export interface Database {
           description: string | null
           status: 'draft' | 'active' | 'disabled'
           public_url: string
+          media_url: string | null
+          media_type: 'none' | 'image' | 'video' | 'logo'
           created_at: string
           updated_at: string
         }
@@ -25,6 +27,8 @@ export interface Database {
           description?: string | null
           status?: 'draft' | 'active' | 'disabled'
           public_url: string
+          media_url?: string | null
+          media_type?: 'none' | 'image' | 'video' | 'logo'
           created_at?: string
           updated_at?: string
         }
@@ -34,6 +38,8 @@ export interface Database {
           description?: string | null
           status?: 'draft' | 'active' | 'disabled'
           public_url?: string
+          media_url?: string | null
+          media_type?: 'none' | 'image' | 'video' | 'logo'
           created_at?: string
           updated_at?: string
         }
@@ -43,7 +49,7 @@ export interface Database {
           id: string
           form_id: string
           label: string
-          type: 'text' | 'number' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'date'
+          type: 'text' | 'number' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'date' | 'location'
           required: boolean
           placeholder: string | null
           options: Json | null
@@ -56,7 +62,7 @@ export interface Database {
           id?: string
           form_id: string
           label: string
-          type: 'text' | 'number' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'date'
+          type: 'text' | 'number' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'date' | 'location'
           required?: boolean
           placeholder?: string | null
           options?: Json | null

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Form Builder Platform",
-  description: "Dynamic form builder and submission management platform",
+  title: "طريقك من الإيجار إلى امتلاك مسكن",
+  description: "حلول ذكية لمساعدتك في الانتقال من الإيجار إلى امتلاك منزلك الأول",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <body>{children}</body>
     </html>
   );
