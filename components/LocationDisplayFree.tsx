@@ -4,12 +4,9 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { ar as t } from '@/lib/translations'
 
-// Import CSS only - this won't execute on server
-if (typeof window !== 'undefined') {
-  require('leaflet/dist/leaflet.css')
-}
-
 // Dynamically import Leaflet components to prevent SSR issues
+// This ensures they only load in the browser, not during SSR
+// CSS is loaded dynamically in useEffect to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false })
@@ -26,6 +23,14 @@ export default function LocationDisplayFree({ value, fieldLabel }: LocationDispl
   useEffect(() => {
     // Only initialize Leaflet in the browser
     if (typeof window !== 'undefined') {
+      // Load CSS dynamically
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
+      link.crossOrigin = ''
+      document.head.appendChild(link)
+
       import('leaflet').then((L) => {
         // Fix for default marker icon in Next.js
         delete (L.default.Icon.Default.prototype as any)._getIconUrl
@@ -36,6 +41,14 @@ export default function LocationDisplayFree({ value, fieldLabel }: LocationDispl
         })
       })
       setMapReady(true)
+
+      return () => {
+        // Cleanup: remove the CSS link when component unmounts
+        const existingLink = document.querySelector(`link[href="${link.href}"]`)
+        if (existingLink) {
+          existingLink.remove()
+        }
+      }
     }
   }, [])
 
