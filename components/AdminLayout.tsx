@@ -42,9 +42,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const navItems = [
-    { href: '/admin', label: 'الإرسالات' },
-    { href: '/admin/forms', label: 'النماذج' },
-    { href: '/admin/map', label: 'خريطة المواقع' },
+    { href: '/admin', label: 'الإرسالات', icon: '📥' },
+    { href: '/admin/forms', label: 'النماذج', icon: '📝' },
+    { href: '/admin/map', label: 'خريطة المواقع', icon: '🗺️' },
   ]
 
   if (loading) {
@@ -60,69 +60,67 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <nav className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex justify-between h-12 sm:h-16">
-            <div className="flex items-center min-w-0 flex-1">
-              <div className="flex-shrink-0">
-                <Link href="/admin" className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  {t.forms} Builder
+      <nav className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            {/* Logo - Empty space */}
+            <div className="flex-shrink-0 w-0"></div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="text-base">{item.icon}</span>
+                  <span>{item.label}</span>
                 </Link>
-              </div>
-              <div className="hidden md:ml-8 md:flex md:space-x-4 rtl:space-x-reverse">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      pathname === item.href
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
+              ))}
             </div>
-            <div className="flex items-center space-x-1.5 sm:space-x-3 rtl:space-x-reverse">
-              {user && (
-                <>
-                  <span className="hidden lg:inline text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg truncate max-w-[120px]">
-                    {user.email}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="text-xs sm:text-sm font-medium text-gray-700 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors"
-                  >
-                    {t.logout}
-                  </button>
-                </>
-              )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
               <Link
                 href="/"
-                className="text-xs sm:text-sm font-medium text-gray-700 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title={t.home}
               >
-                {t.home}
+                <span className="text-lg">🏠</span>
               </Link>
+              {user && (
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title={t.logout}
+                >
+                  <span className="text-lg">🚪</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
         
-        {/* Mobile Menu - More Compact */}
-        <div className="md:hidden border-t border-gray-200 px-2 sm:px-4 py-1.5 sm:py-2">
-          <div className="flex space-x-1.5 sm:space-x-2 rtl:space-x-reverse overflow-x-auto">
+        {/* Mobile Navigation */}
+        <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="flex justify-around items-center px-2 py-2">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex-shrink-0 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                  pathname === item.href
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                className={`flex flex-col items-center gap-1 flex-1 py-2 px-1 rounded-lg transition-all ${
+                  pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600'
                 }`}
               >
-                {item.label}
+                <span className="text-xl">{item.icon}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             ))}
           </div>

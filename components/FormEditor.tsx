@@ -45,6 +45,7 @@ export default function FormEditor({ form, initialFields }: FormEditorProps) {
           status: formData.status,
           media_type: formData.media_type,
           media_url: formData.media_url || null,
+          tutorial_video_url: formData.tutorial_video_url || null,
         })
         .eq('id', form.id)
 
