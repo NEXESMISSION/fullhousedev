@@ -1,18 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import dynamic from 'next/dynamic'
 import { ar as t } from '@/lib/translations'
 
-// Fix for default marker icon in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
+// Import CSS only - this won't execute on server
+if (typeof window !== 'undefined') {
+  require('leaflet/dist/leaflet.css')
+}
+
+// Dynamically import Leaflet components to prevent SSR issues
+const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
+const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false })
 
 interface LocationDisplayProps {
   value: string
@@ -24,7 +24,19 @@ export default function LocationDisplayFree({ value, fieldLabel }: LocationDispl
   const [mapReady, setMapReady] = useState(false)
 
   useEffect(() => {
-    setMapReady(true)
+    // Only initialize Leaflet in the browser
+    if (typeof window !== 'undefined') {
+      import('leaflet').then((L) => {
+        // Fix for default marker icon in Next.js
+        delete (L.default.Icon.Default.prototype as any)._getIconUrl
+        L.default.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        })
+      })
+      setMapReady(true)
+    }
   }, [])
 
   useEffect(() => {
