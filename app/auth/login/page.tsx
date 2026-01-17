@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ar as t } from '@/lib/translations'
 
+// Prevent static generation - this page must be rendered dynamically
+export const dynamic = 'force-dynamic'
+
 function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()

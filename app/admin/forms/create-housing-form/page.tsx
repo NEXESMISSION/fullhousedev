@@ -6,6 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { tunisiaGovernorates, tunisiaCities } from '@/lib/tunisia-data'
 import { Database } from '@/lib/supabase/database.types'
 
+// Prevent static generation - this page must be rendered dynamically
+export const dynamic = 'force-dynamic'
+
 type FormInsert = Database['public']['Tables']['forms']['Insert']
 
 export default function CreateHousingFormPage() {
