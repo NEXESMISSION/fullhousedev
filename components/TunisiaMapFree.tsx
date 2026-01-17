@@ -78,7 +78,7 @@ function FitBounds({ locations }: { locations: Location[] }) {
 export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
   const [mapReady, setMapReady] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [locationType, setLocationType] = useState<'all' | 'current' | 'desired'>('all')
+  const [locationType, setLocationType] = useState<'all' | 'current' | 'desired'>('current')
   const tunisiaCenter: [number, number] = [33.8869, 10.1218]
 
   // Filter locations based on selected type
@@ -302,77 +302,6 @@ export default function TunisiaMapFree({ locations }: TunisiaMapFreeProps) {
           )}
         </div>
 
-        {/* Locations List - Simplified Table View - Hide in fullscreen */}
-        {!isFullscreen && filteredLocations.length > 0 && (
-          <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">قائمة المواقع ({filteredLocations.length})</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">#</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">النموذج</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">العنوان</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">الإحداثيات</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">التاريخ</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredLocations.map((location, index) => (
-                    <tr 
-                      key={index}
-                      className="hover:bg-blue-50/50 transition-colors"
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center justify-center">
-                          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                            {index + 1}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-semibold text-gray-900">{location.formName}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {location.fieldLabel === currentLocationLabel ? (
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded">السكن الحالي</span>
-                          ) : (
-                            <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-800 rounded">الموقع المرغوب</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-gray-700 max-w-xs">
-                          {location.address ? (
-                            <span className="line-clamp-2">{location.address}</span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-xs text-gray-600">
-                          <div>📍 {location.lat.toFixed(6)}</div>
-                          <div>📍 {location.lng.toFixed(6)}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-xs text-gray-500">
-                          {new Date(location.createdAt).toLocaleDateString('ar-TN', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
         {!isFullscreen && filteredLocations.length === 0 && locations.length > 0 && (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center mt-6">
